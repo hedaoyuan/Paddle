@@ -12,6 +12,7 @@ Or you want to define a new API, but found duplicate names.
 
 ## Simpler calculation definition
 If use `BaseMatrix` define a calculation function, this requires two steps.
+
 1. Use `hl_matrix_ops.cuh` define calculation expressions;
 2. Define a calculation API in `BaseMatrix`;
 
@@ -50,9 +51,10 @@ however, due to a combination of various expressions, doing so will make `BaseMa
 ## Which expressions have been implemented in TensorExpression
 Various element-wise calculations have been implemented. 
 For example:
+
 1. `A = op(A)` various unary expression and `op` is operator defined in TensorExpression(like +-*/><=...)
-1. `A = B op C...` various binary expression and `op` is operator defined in TensorExpression(like +-*/><=...)
-2. `A = (B > C).condition(B, C)` conditional expression and `condition` is `?:` operator. This expression is equivalent to ` A = B > C ? B : C`
+2. `A = B op C...` various binary expression and `op` is operator defined in TensorExpression(like +-*/><=...)
+3. `A = (B > C).condition(B, C)` conditional expression and `condition` is `?:` operator. This expression is equivalent to ` A = B > C ? B : C`
 
 ## Which classes support expression operation
 For example `A = B op C` and op is operator defined in TensorExpression(like +-*/...)
@@ -73,6 +75,7 @@ so if you want to compile an expression based on the `CpuMatrix`, `GpuMatrix`, `
 this need to increase c++11/c++0x compiler option.
 
 Examples: A = B + C (A/B/C is BaseMatrix class or Cpu/GpuMatrix class or Cpu/GpuVector class)
+
 1. Base on BaseMatrix, (used by TrainingAlgorithmOp.h). need gcc4.6 and nvcc5.5 above.
 2. Base on Cpu/GpuMatrix or Cpu/GpuVector, (used in test_Tensor.cu). 
 If only cpu version is compiled, need gcc4.6 above and c++0x/c++11 option.
