@@ -18,6 +18,19 @@ limitations under the License. */
 
 namespace paddle {
 
+template <class T>
+void eigen_gemm(const int M,
+                const int N,
+                const int K,
+                const T alpha,
+                const T* A,
+                const int lda,
+                const T* B,
+                const int ldb,
+                const T beta,
+                T* C,
+                const int ldc);
+
 // TODO(hedaoyuan): Since the hl_matrix_mul interface does not conform to the
 // cblas_dgemm interface's parameter format, it is necessary to introduce
 // GemmFunctor as a new interface. Later, when considering the implementation
@@ -27,7 +40,7 @@ template <DeviceType Device, class T>
 class GemmFunctor {
 public:
   void operator()(const CBLAS_TRANSPOSE transA,
-                  const CBLAS_TRANSPOSE TransB,
+                  const CBLAS_TRANSPOSE transB,
                   const int M,
                   const int N,
                   const int K,
@@ -45,7 +58,7 @@ template <class T>
 class GemmFunctor<DEVICE_TYPE_CPU, T> {
 public:
   void operator()(const CBLAS_TRANSPOSE transA,
-                  const CBLAS_TRANSPOSE TransB,
+                  const CBLAS_TRANSPOSE transB,
                   const int M,
                   const int N,
                   const int K,
@@ -57,7 +70,12 @@ public:
                   const T beta,
                   T* C,
                   const int ldc) {
-    gemm<T>(transA, TransB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    if (transA == CblasNoTrans && transB == CblasNoTrans && alpha == 1.0 &&
+        beta == 0) {
+      eigen_gemm<T>(M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    } else {
+      gemm<T>(transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
   }
 };
 
@@ -65,7 +83,7 @@ template <class T>
 class GemmFunctor<DEVICE_TYPE_GPU, T> {
 public:
   void operator()(const CBLAS_TRANSPOSE transA,
-                  const CBLAS_TRANSPOSE TransB,
+                  const CBLAS_TRANSPOSE transB,
                   const int M,
                   const int N,
                   const int K,
@@ -80,7 +98,7 @@ public:
     hl_matrix_mul((T*)A,
                   transA == CblasNoTrans ? HPPL_OP_N : HPPL_OP_T,
                   (T*)B,
-                  TransB == CblasNoTrans ? HPPL_OP_N : HPPL_OP_T,
+                  transB == CblasNoTrans ? HPPL_OP_N : HPPL_OP_T,
                   C,
                   M,
                   N,
